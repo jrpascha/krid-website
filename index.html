@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRID — Krampon Kişiselleştirme</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            krid: {
+              green:      '#16A34A',
+              'green-lt': '#22C55E',
+              'green-dk': '#15803D',
+              'green-bg': '#F0FDF4',
+              black:      '#0A0A0A',
+              dark:       '#111111',
+              surface:    '#1A1A1A',
+              muted:      '#F5F5F5',
+              border:     '#E5E5E5',
+            }
+          },
+          fontFamily: {
+            heading: ['"Archivo Black"', 'sans-serif'],
+            body:    ['Inter', 'Helvetica', 'Arial', 'sans-serif'],
+          },
+          maxWidth: { page: '120rem' }
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    .font-heading { font-family: 'Archivo Black', sans-serif; }
+
+    /* Grain overlay */
+    .grain::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0A0A0A; }
+    ::-webkit-scrollbar-thumb { background: #16A34A; border-radius: 99px; }
+
+    /* Mobile menu */
+    #menu-toggle:checked ~ #mobile-nav { display: flex; }
+
+    /* Gallery hover */
+    .gallery-item img { transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .gallery-item:hover img { transform: scale(1.06); }
+    .gallery-item .overlay { transition: opacity 0.3s ease; }
+    .gallery-item:hover .overlay { opacity: 1; }
+
+    /* Button press */
+    .btn-press:active { transform: scale(0.97); }
+
+    /* Step card hover */
+    .step-card { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+    .step-card:hover {
+      border-color: rgba(22,163,74,0.3);
+      box-shadow: 0 4px 24px rgba(22,163,74,0.08), 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* Animate pulse dot */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+    /* ── Hero photo collage responsive heights ───────────────── */
+    .hero-photo-tall  { height: 160px; }
+    .hero-photo-short { height: 130px; }
+    @media (min-width: 768px) {
+      .hero-photo-tall  { height: 270px; }
+      .hero-photo-short { height: 220px; }
+    }
+
+    /* ── Marker Highlight Animation ─────────────────────────── */
+    .mh-wrap {
+      position: relative;
+      display: inline;
+    }
+    .mh-bg {
+      position: absolute;
+      inset: 0.06em 0;
+      border-radius: 3px;
+      background: #B8860B;
+      transform-origin: left center;
+      transform: scaleX(0);
+      z-index: 0;
+      animation: mhSweep 4.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+      animation-delay: 1s;
+    }
+    .mh-text {
+      position: relative;
+      z-index: 1;
+      animation: mhColor 4.8s ease infinite;
+      animation-delay: 1s;
+    }
+
+    @keyframes mhSweep {
+      0%, 10%   { transform: scaleX(0); }
+      36%        { transform: scaleX(1); }
+      46%, 68%  { transform: scaleX(1); }
+      86%, 100% { transform: scaleX(0); }
+    }
+
+    @keyframes mhColor {
+      0%, 33%   { color: inherit; }
+      48%, 68%  { color: #0A0A0A; }
+      86%, 100% { color: inherit; }
+    }
+
+    /* Fade up on scroll */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="bg-white text-krid-black">
+
+  <!-- ═══════════════════════════════════════ HEADER ═══ -->
+  <header class="sticky top-0 z-50 bg-white border-b border-krid-border"
+          style="box-shadow: 0 1px 0 0 #e5e5e5, 0 2px 12px rgba(0,0,0,0.05);">
+    <div class="max-w-page mx-auto px-6 py-4">
+      <div class="grid items-center gap-4" style="grid-template-columns: 1fr auto 1fr;">
+
+        <!-- Logo -->
+        <div>
+          <a href="#" aria-label="KRID Ana Sayfa"
+             class="inline-block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green rounded-sm">
+            <img src="marka_assetleri/Krid_Logo.png" alt="KRID" class="h-16 w-auto">
+          </a>
+        </div>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-8" aria-label="Ana Menü">
+          <a href="#nasil-calisir"
+             class="text-sm font-medium text-gray-500 hover:text-krid-black transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+            Nasıl Çalışır
+          </a>
+          <a href="#karakterler"
+             class="text-sm font-medium text-gray-500 hover:text-krid-black transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+            Karakterler
+          </a>
+          <a href="#galeri"
+             class="text-sm font-medium text-gray-500 hover:text-krid-black transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+            Galeri
+          </a>
+          <a href="#iletisim"
+             class="text-sm font-medium text-gray-500 hover:text-krid-black transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+            İletişim
+          </a>
+        </nav>
+
+        <!-- CTA + Hamburger -->
+        <div class="flex items-center justify-end gap-4">
+          <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+             class="btn-press inline-flex items-center gap-2 bg-krid-green text-white text-sm font-semibold px-5 py-2.5 rounded-full
+                    hover:bg-krid-green-dk focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green
+                    transition-[background-color] duration-150"
+             style="box-shadow: 0 2px 10px rgba(22,163,74,0.3), 0 1px 2px rgba(0,0,0,0.08);">
+            Sipariş Ver
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M1 6.5h11M7 1.5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+
+          <!-- Hamburger (mobile) -->
+          <label for="menu-toggle" class="md:hidden cursor-pointer p-2 rounded-md hover:bg-krid-muted transition-colors duration-150" aria-label="Menüyü Aç">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M3 6h16M3 11h16M3 16h16" stroke="#0A0A0A" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </label>
+          <input type="checkbox" id="menu-toggle" class="hidden">
+        </div>
+      </div>
+
+      <!-- Mobile Nav -->
+      <nav id="mobile-nav" class="hidden flex-col gap-1 pt-3 pb-2 border-t border-krid-border mt-3 md:hidden" aria-label="Mobil Menü">
+        <a href="#nasil-calisir" class="px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-krid-black hover:bg-krid-muted rounded-lg transition-colors duration-150">Nasıl Çalışır</a>
+        <a href="#karakterler"  class="px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-krid-black hover:bg-krid-muted rounded-lg transition-colors duration-150">Karakterler</a>
+        <a href="#galeri"       class="px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-krid-black hover:bg-krid-muted rounded-lg transition-colors duration-150">Galeri</a>
+        <a href="#iletisim"     class="px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-krid-black hover:bg-krid-muted rounded-lg transition-colors duration-150">İletişim</a>
+      </nav>
+    </div>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════ HERO ════════ -->
+  <section class="relative bg-krid-black overflow-hidden grain">
+    <!-- Background gradients -->
+    <div class="absolute inset-0 pointer-events-none" style="
+      background:
+        radial-gradient(ellipse 55% 65% at 10% 55%, rgba(22,163,74,0.20) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 45% at 85% 15%, rgba(22,163,74,0.09) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 60% 90%, rgba(22,163,74,0.06) 0%, transparent 50%);
+    "></div>
+
+    <div class="relative z-10 max-w-page mx-auto px-6 flex flex-col md:flex-row items-center gap-12 py-14 md:py-28">
+
+      <!-- Left: Copy -->
+      <div class="flex-1 max-w-lg">
+
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest border mb-8"
+             style="background: rgba(22,163,74,0.1); border-color: rgba(22,163,74,0.25); color: #22C55E;">
+          <span class="pulse-dot w-1.5 h-1.5 rounded-full inline-block" style="background:#22C55E;"></span>
+          Krid Karakterler · Harfler · Bayraklar · Emojiler
+        </div>
+
+        <h1 class="font-heading text-white leading-none mb-6"
+            style="font-size: clamp(2.8rem, 7vw, 5rem); letter-spacing: -0.03em;">
+          Kramponuna<br>
+          <span style="color:#22C55E;">Kimliğini</span><br>
+          Ver.
+        </h1>
+
+        <!-- Marker highlight slogan -->
+        <div class="mb-10">
+          <p class="font-heading" style="font-size: clamp(1.35rem, 2.8vw, 1.9rem); color: #9CA3AF; letter-spacing: -0.025em; line-height: 1.25;">
+            <span class="mh-wrap">
+              <span class="mh-bg" aria-hidden="true"></span>
+              <span class="mh-text">Futbolcular</span>
+            </span>
+            için tasarlandı.
+          </p>
+          <p class="text-gray-600 text-sm mt-4 max-w-sm" style="line-height: 1.7;">
+            Harf, sayı, bayrak, emoji veya özel kelimeni seç —
+            her kişiselleştirme el işçiliğiyle uygulanır.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 mb-14">
+          <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+             class="btn-press inline-flex items-center justify-center gap-2 bg-krid-green text-white font-semibold px-8 py-4 rounded-full
+                    hover:bg-krid-green-lt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green
+                    transition-[background-color] duration-150 text-base"
+             style="box-shadow: 0 4px 24px rgba(22,163,74,0.45), 0 1px 4px rgba(0,0,0,0.25);">
+            Hemen Sipariş Ver
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M1 8h14M9 2l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#galeri"
+             class="btn-press inline-flex items-center justify-center gap-2 border text-white font-medium px-8 py-4 rounded-full
+                    hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white
+                    transition-[background-color,border-color] duration-150 text-base"
+             style="border-color: rgba(255,255,255,0.2);">
+            Galeriyi Gör
+          </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex gap-10 pt-8" style="border-top: 1px solid rgba(255,255,255,0.08);">
+          <div>
+            <div class="font-heading text-white text-3xl" style="letter-spacing:-0.03em;">1000+</div>
+            <div class="text-gray-500 text-xs mt-1 font-medium uppercase tracking-wider">Mutlu Müşteri</div>
+          </div>
+          <div>
+            <div class="font-heading text-white text-3xl" style="letter-spacing:-0.03em;">%100</div>
+            <div class="text-gray-500 text-xs mt-1 font-medium uppercase tracking-wider">Özgün Tasarım</div>
+          </div>
+          <div>
+            <div class="font-heading text-white text-3xl" style="letter-spacing:-0.03em;">7–14</div>
+            <div class="text-gray-500 text-xs mt-1 font-medium uppercase tracking-wider">Gün Teslimat</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Photo collage -->
+      <div class="flex-1 w-full grid grid-cols-2 gap-3" style="align-self:center;">
+        <div class="flex flex-col gap-3">
+          <div class="gallery-item hero-photo-tall rounded-2xl overflow-hidden relative" style="box-shadow: 0 12px 40px rgba(0,0,0,0.6);">
+            <img src="marka_assetleri/müşteriler/IMG_8412.JPG.jpeg" alt="Kişiselleştirilmiş krampon" class="w-full h-full object-cover">
+            <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);"></div>
+          </div>
+          <div class="gallery-item hero-photo-short rounded-2xl overflow-hidden relative" style="box-shadow: 0 12px 40px rgba(0,0,0,0.6);">
+            <img src="marka_assetleri/müşteriler/IMG_8387.JPG.jpeg" alt="Kişiselleştirilmiş krampon" class="w-full h-full object-cover">
+            <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);"></div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-3 pt-6">
+          <div class="gallery-item hero-photo-short rounded-2xl overflow-hidden relative" style="box-shadow: 0 12px 40px rgba(0,0,0,0.6);">
+            <img src="marka_assetleri/müşteriler/IMG_8035.JPG.jpeg" alt="Kişiselleştirilmiş krampon" class="w-full h-full object-cover">
+            <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);"></div>
+          </div>
+          <div class="gallery-item hero-photo-tall rounded-2xl overflow-hidden relative" style="box-shadow: 0 12px 40px rgba(0,0,0,0.6);">
+            <img src="marka_assetleri/müşteriler/IMG_8220.JPG.jpeg" alt="Kişiselleştirilmiş krampon" class="w-full h-full object-cover">
+            <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%);"></div>
+          </div>
+        </div>
+        <!-- Glow behind photos -->
+        <div class="col-span-2 flex justify-center -mt-6 pointer-events-none">
+          <div class="w-2/3 h-16 rounded-full blur-3xl" style="background: rgba(22,163,74,0.18);"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════ HOW IT WORKS ═══ -->
+  <section id="nasil-calisir" class="bg-white py-24 md:py-32">
+    <div class="max-w-page mx-auto px-6">
+      <div class="text-center mb-16 fade-up">
+        <p class="text-krid-green font-semibold text-xs uppercase tracking-widest mb-3">Nasıl Çalışır</p>
+        <h2 class="font-heading text-krid-black text-4xl md:text-5xl" style="letter-spacing:-0.03em;">
+          Krid Nasıl Uygulanır?
+        </h2>
+        <p class="text-gray-500 mt-4 max-w-xl mx-auto text-base" style="line-height:1.75;">
+          7 kolay adımda kramponuna baskı yap. Pakette ihtiyacın olan her şey mevcut.
+        </p>
+      </div>
+
+      <!-- Steps 1–6 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+
+        <!-- Step 1 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">01</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <path d="M11 3C7.13 3 4 6.13 4 10c0 2.39 1.19 4.5 3 5.74V17h8v-1.26C16.81 14.5 18 12.39 18 10c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+              <path d="M9 17v2h4v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Yüzeyi Seç</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Kramponunda baskıya uygun yüzeyi belirle. Sert ve pürüzsüz bir alan tercih et.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">02</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.7" fill="none"/>
+              <path d="M14.5 14.5L19 19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M8 10h4M10 8v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Yüzeyi Kontrol Et</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Yüzeyin pürüzsüz ve düz olmasına dikkat et. Kumaş kısımlarda baskı kalitesi düşer.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">03</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <path d="M5 11c1.5-2 3.5-3 6-3s4.5 1 6 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <ellipse cx="11" cy="15" rx="5" ry="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M6 13.5C4.5 14 3 15 3 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M16 13.5C17.5 14 19 15 19 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Yüzeyi Temizle</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Belirlediğin yüzeyi paketten çıkan mendille iyice sil. Kir ve yağ baskı kalitesini düşürür.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">04</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <path d="M11 4v3M7.05 6.05L9.17 8.17M4 11h3M6.05 15.95l2.12-2.12M11 18v-3M14.83 13.83l2.12 2.12M18 11h-3M14.95 6.05l-2.12 2.12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Kurumasını Bekle</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Temizlenen yüzeyin kurumasını bekle veya temiz bir bezle kurula. Yüzey kuru olmalı.
+          </p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">05</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <rect x="4" y="8" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/>
+              <path d="M7 8V6a4 4 0 018 0v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 5.5L4 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="1.5 2"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Krid'i Sıyır ve Bas</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Krid'i alt tabakasından sıyır ve belirlediğin yüzeye yerleştirip baskı uygula.
+          </p>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="step-card relative p-8 rounded-2xl bg-krid-muted border border-krid-border fade-up" style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <span class="font-heading text-8xl absolute top-4 right-5 leading-none select-none pointer-events-none"
+                style="color: rgba(22,163,74,0.08); letter-spacing:-0.03em;">06</span>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-6 bg-krid-green"
+               style="box-shadow: 0 4px 14px rgba(22,163,74,0.35);">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="text-white" aria-hidden="true">
+              <path d="M8 14c0 0 .5-2 3-2s3 2 3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M7 6.5c1.5 0 2.5.5 4 .5s2.5-.5 4-.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M6 4l1 8h8l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <path d="M11 10v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3 class="font-heading text-xl text-krid-black mb-3" style="letter-spacing:-0.02em;">Elle Baskı Uygula</h3>
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Yüzeye yapıştırdıktan sonra elinizle karakterin üzerine kuvvetlice baskı uygula.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Step 7 — Final step, full width highlighted -->
+      <div class="step-card relative p-8 md:p-10 rounded-2xl border fade-up"
+           style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 60%);
+                  border-color: rgba(22,163,74,0.2);
+                  box-shadow: 0 4px 24px rgba(22,163,74,0.08), 0 1px 4px rgba(0,0,0,0.04);">
+        <span class="font-heading text-8xl md:text-9xl absolute top-4 right-6 leading-none select-none pointer-events-none"
+              style="color: rgba(22,163,74,0.07); letter-spacing:-0.03em;">07</span>
+        <div class="flex flex-col md:flex-row md:items-center gap-6">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 bg-krid-green"
+               style="box-shadow: 0 6px 20px rgba(22,163,74,0.4);">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" class="text-white" aria-hidden="true">
+              <path d="M4 13l7 7L22 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-2 mb-2">
+              <h3 class="font-heading text-xl text-krid-black" style="letter-spacing:-0.02em;">Üst Tabakayı Sök — Hazırsın!</h3>
+              <span class="text-xs font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                    style="background: rgba(22,163,74,0.12); color: #16A34A;">Son Adım</span>
+            </div>
+            <p class="text-gray-500 text-sm" style="line-height:1.75; max-width:680px;">
+              Baskıyı tamamladıktan sonra krid'in şeffaf üst tabakasını da krampondan yavaşça sök. Karakterin olduğu kısım kramponunda kalır. Artık sahaya çıkmaya hazırsın!
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════ KRİD KARAKTERLER ═══ -->
+  <section id="karakterler" class="bg-krid-black py-24 md:py-32 relative overflow-hidden grain">
+    <div class="absolute inset-0 pointer-events-none" style="
+      background:
+        radial-gradient(ellipse 50% 60% at 80% 30%, rgba(22,163,74,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 10% 80%, rgba(22,163,74,0.07) 0%, transparent 55%);
+    "></div>
+
+    <div class="relative z-10 max-w-page mx-auto px-6">
+      <div class="text-center mb-16 fade-up">
+        <p class="text-krid-green-lt font-semibold text-xs uppercase tracking-widest mb-3">Ürün Kataloğu</p>
+        <h2 class="font-heading text-white text-4xl md:text-5xl" style="letter-spacing:-0.03em;">
+          Krid Karakterler
+        </h2>
+        <p class="text-gray-500 mt-4 max-w-xl mx-auto text-base" style="line-height:1.75;">
+          Kramponuna eklemek istediğin karakteri seç. Harfler, sayılar, bayraklar, emojiler
+          ve özel kelimeler — hepsi el işçiliğiyle uygulanır.
+        </p>
+      </div>
+
+      <!-- Category grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+
+        <!-- Harfler -->
+        <div class="katalog-kart group relative rounded-2xl overflow-hidden cursor-pointer fade-up"
+             data-img="marka_assetleri/katalog/1.png" data-title="Harfler"
+             style="background:#141414; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div class="relative overflow-hidden" style="height:280px; background:#fff;">
+            <img src="marka_assetleri/katalog/1.png" alt="Harfler kataloğu"
+                 class="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-heading text-white text-lg" style="letter-spacing:-0.02em;">Harfler</h3>
+                <p class="text-gray-500 text-sm mt-1">A–Z + Türkçe özel karakterler</p>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-krid-green/10 border border-krid-green/20 flex items-center justify-center group-hover:bg-krid-green group-hover:border-krid-green transition-[background-color,border-color] duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="text-krid-green-lt group-hover:text-white transition-colors duration-200">
+                  <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sayılar -->
+        <div class="katalog-kart group relative rounded-2xl overflow-hidden cursor-pointer fade-up"
+             data-img="marka_assetleri/katalog/3.png" data-title="Sayılar"
+             style="background:#141414; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div class="relative overflow-hidden" style="height:280px; background:#fff;">
+            <img src="marka_assetleri/katalog/3.png" alt="Sayılar kataloğu"
+                 class="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-heading text-white text-lg" style="letter-spacing:-0.02em;">Sayılar</h3>
+                <p class="text-gray-500 text-sm mt-1">0'dan 10'a tüm rakamlar</p>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-krid-green/10 border border-krid-green/20 flex items-center justify-center group-hover:bg-krid-green group-hover:border-krid-green transition-[background-color,border-color] duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="text-krid-green-lt group-hover:text-white transition-colors duration-200">
+                  <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bayraklar -->
+        <div class="katalog-kart group relative rounded-2xl overflow-hidden cursor-pointer fade-up"
+             data-img="marka_assetleri/katalog/5.png" data-title="Bayraklar"
+             style="background:#141414; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div class="relative overflow-hidden" style="height:280px; background:#fff;">
+            <img src="marka_assetleri/katalog/5.png" alt="Bayraklar kataloğu"
+                 class="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-heading text-white text-lg" style="letter-spacing:-0.02em;">Bayraklar</h3>
+                <p class="text-gray-500 text-sm mt-1">Türkiye, Brezilya, Arjantin ve daha fazlası</p>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-krid-green/10 border border-krid-green/20 flex items-center justify-center group-hover:bg-krid-green group-hover:border-krid-green transition-[background-color,border-color] duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="text-krid-green-lt group-hover:text-white transition-colors duration-200">
+                  <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Emojiler -->
+        <div class="katalog-kart group relative rounded-2xl overflow-hidden cursor-pointer fade-up"
+             data-img="marka_assetleri/katalog/6.png" data-title="Emojiler"
+             style="background:#141414; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div class="relative overflow-hidden" style="height:280px; background:#fff;">
+            <img src="marka_assetleri/katalog/6.png" alt="Emojiler kataloğu"
+                 class="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-heading text-white text-lg" style="letter-spacing:-0.02em;">Emojiler</h3>
+                <p class="text-gray-500 text-sm mt-1">❤️ ⚡ 💪 ∞ ve daha fazlası</p>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-krid-green/10 border border-krid-green/20 flex items-center justify-center group-hover:bg-krid-green group-hover:border-krid-green transition-[background-color,border-color] duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="text-krid-green-lt group-hover:text-white transition-colors duration-200">
+                  <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kelime & Cümleler -->
+        <div class="katalog-kart group relative rounded-2xl overflow-hidden cursor-pointer fade-up sm:col-span-2 lg:col-span-2"
+             data-img="marka_assetleri/katalog/7.png" data-title="Kelime &amp; Cümleler"
+             style="background:#141414; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div class="relative overflow-hidden flex items-center" style="height:280px; background:#fff;">
+            <img src="marka_assetleri/katalog/7.png" alt="Kelime ve Cümleler kataloğu"
+                 class="w-full h-full object-contain p-8 group-hover:scale-105 transition-transform duration-500">
+          </div>
+          <div class="p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-heading text-white text-lg" style="letter-spacing:-0.02em;">Kelime &amp; Cümleler</h3>
+                <p class="text-gray-500 text-sm mt-1">GOAT, MAESTRO, SAVAŞÇI, VİRTÜÖZ, ŞEF, El Sueño del Niño…</p>
+              </div>
+              <div class="w-8 h-8 rounded-full bg-krid-green/10 border border-krid-green/20 flex items-center justify-center group-hover:bg-krid-green group-hover:border-krid-green transition-[background-color,border-color] duration-200">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="text-krid-green-lt group-hover:text-white transition-colors duration-200">
+                  <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="text-center mt-12 fade-up">
+        <p class="text-gray-500 text-sm mb-6">İstediğin karakteri seç, sipariş ver — biz uygulayalım.</p>
+        <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+           class="btn-press inline-flex items-center gap-2 bg-krid-green text-white font-semibold px-8 py-4 rounded-full
+                  hover:bg-krid-green-lt focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green
+                  transition-[background-color] duration-150 text-base"
+           style="box-shadow: 0 4px 24px rgba(22,163,74,0.4), 0 1px 4px rgba(0,0,0,0.25);">
+          Hemen Sipariş Ver
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 8h14M9 2l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════ GALLERY ═══════ -->
+  <section id="galeri" class="bg-krid-muted py-24 md:py-32">
+    <div class="max-w-page mx-auto px-6">
+      <div class="text-center mb-16 fade-up">
+        <p class="text-krid-green font-semibold text-xs uppercase tracking-widest mb-3">Galeri</p>
+        <h2 class="font-heading text-krid-black text-4xl md:text-5xl" style="letter-spacing:-0.03em;">
+          Mutlu Müşterilerimiz
+        </h2>
+        <p class="text-gray-500 mt-4 max-w-lg mx-auto text-base" style="line-height:1.75;">
+          Her krampon bir hikaye anlatır. İşte müşterilerimizden gelen gerçek sonuçlar.
+        </p>
+      </div>
+
+      <!-- Masonry grid -->
+      <div class="columns-2 md:columns-3 lg:columns-4 gap-4">
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7840.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7841.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7842.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7843.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7844.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7845.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7846.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7847.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7875.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_7877.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8022.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8035.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8047.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8198.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8204.PNG" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8217.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8218.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8219.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8220.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8224.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8387.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8388.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8411.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+        <div class="gallery-item break-inside-avoid mb-4 rounded-xl overflow-hidden relative cursor-pointer"
+             style="box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+          <img src="marka_assetleri/müşteriler/IMG_8412.JPG.jpeg" alt="Müşteri krampon" class="w-full object-cover">
+          <div class="overlay absolute inset-0 opacity-0" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);"></div>
+        </div>
+
+      </div>
+
+      <!-- Gallery CTA -->
+      <div class="text-center mt-14 fade-up">
+        <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+           class="btn-press inline-flex items-center gap-2 bg-krid-black text-white font-semibold px-8 py-4 rounded-full
+                  hover:bg-krid-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-black
+                  transition-[background-color] duration-150 text-base"
+           style="box-shadow: 0 4px 20px rgba(0,0,0,0.18);">
+          Sen de Siparişini Ver
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 8h14M9 2l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════ CTA BANNER ═══ -->
+  <section class="relative bg-krid-green overflow-hidden py-28">
+    <div class="absolute inset-0 pointer-events-none" style="
+      background:
+        radial-gradient(ellipse 80% 120% at 50% 50%, rgba(255,255,255,0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 60% at 0% 100%, rgba(0,0,0,0.12) 0%, transparent 50%);
+    "></div>
+    <!-- Watermark logo -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="z-index:1;">
+      <img src="marka_assetleri/Krid_Logo.png" alt=""
+           aria-hidden="true"
+           style="height: 520px; width: auto; opacity: 0.07; filter: invert(1);">
+    </div>
+    <div class="relative z-10 max-w-page mx-auto px-6 text-center">
+      <h2 class="font-heading text-white mb-5 fade-up"
+          style="font-size: clamp(2.2rem, 5vw, 3.75rem); letter-spacing:-0.03em;">
+        Sıradaki Hamle Senin.
+      </h2>
+      <p class="text-white/80 text-lg mb-10 max-w-lg mx-auto fade-up" style="line-height:1.75;">
+        Kramponuna ismini, bayrağını veya özel tasarımını eklet. Sahada fark yarat.
+      </p>
+      <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+         class="btn-press inline-flex items-center gap-2 bg-white text-krid-green font-bold px-10 py-4 rounded-full
+                hover:bg-krid-green-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white
+                transition-[background-color] duration-150 text-lg fade-up"
+         style="box-shadow: 0 8px 32px rgba(0,0,0,0.18);">
+        Hemen Sipariş Ver
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M1 9h16M10 2l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════ FOOTER ════════ -->
+  <footer id="iletisim" class="bg-krid-black text-white">
+    <div class="max-w-page mx-auto px-6 py-16">
+      <div class="flex flex-col md:flex-row justify-between gap-12 mb-12">
+
+        <!-- Brand -->
+        <div class="max-w-xs">
+          <img src="marka_assetleri/Krid_Logo.png" alt="KRID" class="h-14 w-auto mb-5" style="filter: invert(1);">
+          <p class="text-gray-500 text-sm" style="line-height:1.75;">
+            Türkiye'nin krampon kişiselleştirme markası.<br>İsmini sahaya taşı.
+          </p>
+        </div>
+
+        <!-- Links -->
+        <div class="flex gap-16">
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">Hızlı Erişim</h4>
+            <ul class="space-y-3">
+              <li>
+                <a href="#nasil-calisir"
+                   class="text-gray-500 text-sm hover:text-white transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+                  Nasıl Çalışır
+                </a>
+              </li>
+              <li>
+                <a href="#galeri"
+                   class="text-gray-500 text-sm hover:text-white transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+                  Galeri
+                </a>
+              </li>
+              <li>
+                <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+                   class="text-gray-500 text-sm hover:text-white transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green rounded-sm">
+                  Sipariş Ver ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">Sipariş</h4>
+            <ul class="space-y-3">
+              <li>
+                <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+                   class="btn-press inline-flex items-center gap-1.5 bg-krid-green text-white text-sm font-medium px-4 py-2 rounded-full
+                          hover:bg-krid-green-lt transition-[background-color] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green"
+                   style="box-shadow: 0 2px 8px rgba(22,163,74,0.3);">
+                  Shopier'a Git ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-8 flex flex-col md:flex-row justify-between items-center gap-4" style="border-top: 1px solid rgba(255,255,255,0.08);">
+        <p class="text-gray-600 text-xs">© 2025 KRID. Tüm hakları saklıdır.</p>
+        <p class="text-gray-600 text-xs">Krampon Kişiselleştirme Hizmeti</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════ KATALOG MODAL ═══ -->
+  <div id="katalog-modal"
+       class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+       style="display:none; background: rgba(0,0,0,0.88); backdrop-filter: blur(12px);">
+    <div id="katalog-modal-box"
+         class="relative bg-white rounded-2xl overflow-hidden w-full"
+         style="max-width: 680px; max-height: 90vh;
+                box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+                transform: scale(0.95); opacity: 0;
+                transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 id="katalog-modal-title" class="font-heading text-krid-black text-xl" style="letter-spacing:-0.02em;"></h3>
+        <button id="katalog-modal-kapat"
+                class="w-9 h-9 rounded-full flex items-center justify-center text-gray-400
+                       hover:bg-gray-100 hover:text-krid-black active:scale-90
+                       transition-[background-color,color,transform] duration-150
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-krid-green"
+                aria-label="Kapat">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Image -->
+      <div class="overflow-y-auto" style="max-height: calc(90vh - 140px);">
+        <img id="katalog-modal-img" src="" alt=""
+             class="w-full h-auto object-contain" style="display:block;">
+      </div>
+      <!-- Footer CTA -->
+      <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-4">
+        <p class="text-gray-500 text-sm">İstediğin karakteri seç, sipariş ver.</p>
+        <a href="https://www.shopier.com/kramponid" target="_blank" rel="noopener noreferrer"
+           class="btn-press inline-flex items-center gap-2 bg-krid-green text-white text-sm font-semibold px-5 py-2.5 rounded-full
+                  hover:bg-krid-green-dk transition-[background-color] duration-150
+                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-krid-green"
+           style="box-shadow: 0 2px 10px rgba(22,163,74,0.35);">
+          Sipariş Ver
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M1 6.5h11M7 1.5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Scroll fade-up observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // Hamburger toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileNav  = document.getElementById('mobile-nav');
+    menuToggle.addEventListener('change', () => {
+      if (menuToggle.checked) {
+        mobileNav.classList.remove('hidden');
+        mobileNav.classList.add('flex');
+      } else {
+        mobileNav.classList.add('hidden');
+        mobileNav.classList.remove('flex');
+      }
+    });
+
+    // Close mobile menu on nav link click
+    document.querySelectorAll('#mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        menuToggle.checked = false;
+        mobileNav.classList.add('hidden');
+        mobileNav.classList.remove('flex');
+      });
+    });
+
+    // ── Katalog Modal ──────────────────────────────────────────
+    const modal    = document.getElementById('katalog-modal');
+    const modalBox = document.getElementById('katalog-modal-box');
+    const modalImg = document.getElementById('katalog-modal-img');
+    const modalTitle = document.getElementById('katalog-modal-title');
+
+    function openModal(imgSrc, title) {
+      modalImg.src   = imgSrc;
+      modalImg.alt   = title;
+      modalTitle.textContent = title;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modalBox.style.transform = 'scale(1)';
+          modalBox.style.opacity   = '1';
+        });
+      });
+    }
+
+    function closeModal() {
+      modalBox.style.transform = 'scale(0.95)';
+      modalBox.style.opacity   = '0';
+      setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        modalImg.src = '';
+      }, 220);
+    }
+
+    // Kartlara tıklama
+    document.querySelectorAll('.katalog-kart').forEach(kart => {
+      kart.addEventListener('click', () => {
+        openModal(kart.dataset.img, kart.dataset.title);
+      });
+    });
+
+    // Kapatma butonu
+    document.getElementById('katalog-modal-kapat').addEventListener('click', closeModal);
+
+    // Overlay'e tıklama
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // ESC tuşu
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+    });
+  </script>
+</body>
+</html>
